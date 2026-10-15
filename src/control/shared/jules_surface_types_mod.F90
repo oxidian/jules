@@ -50,6 +50,8 @@ INTEGER ::                                                                     &
                 ! Index of the soil surface type
   ice   = imdi,                                                                &
                 ! Index of the ice surface type
+  road  = imdi,                                                                &
+                ! Index of the road surface type
 
 ! For use when l_urban2t == .TRUE.
     urban_canyon = imdi,                                                       &
@@ -124,7 +126,7 @@ NAMELIST  / jules_surface_types/                                               &
   c3_crop, c3_pasture, c3_irrig, c4_grass, c4_crop, c4_pasture, c4_irrig,      &
   c3_crop_wheat, c3_crop_soybean, c4_crop_maize, c3_crop_rice,                 &
   shrub, shrub_dec, shrub_eg, urban, urban_canyon, urban_roof, lake, soil,     &
-  ice, elev_ice, elev_rock, usr_type, tile_map_ids
+  ice, road, elev_ice, elev_rock, usr_type, tile_map_ids
 
 CHARACTER(LEN=*), PARAMETER, PRIVATE :: ModuleName='JULES_SURFACE_TYPES_MOD'
 
@@ -238,7 +240,8 @@ CALL check_surface_type_value ( shrub_eg, "shrub_eg", 1, npft,                 &
    RoutineName, errorstatus, nchecks )
 
 ! PFT surface types must come before non-veg types, so if urban, lake, soil,
-! ice, urban_canyon or urban_roof are given (i.e. > 0) then they must be > npft
+! ice, road, urban_canyon or urban_roof are given (i.e. > 0) then they must
+! be > npft
 ! A soil type is required
 CALL check_surface_type_value ( urban, "urban", npft+1, ntype,                 &
    RoutineName, errorstatus, nchecks )
@@ -251,6 +254,8 @@ CALL check_surface_type_value ( lake, "lake", npft+1, ntype,                   &
 CALL check_surface_type_value ( soil, "soil", npft+1, ntype,                   &
    RoutineName, errorstatus, nchecks )
 CALL check_surface_type_value ( ice, "ice", npft+1, ntype,                     &
+   RoutineName, errorstatus, nchecks )
+CALL check_surface_type_value ( road, "road", npft+1, ntype,                   &
    RoutineName, errorstatus, nchecks )
 
 DO i = 1, elev_tile_max
@@ -460,6 +465,11 @@ IF ( ice > -1 ) THEN
   CALL jules_print('jules_surface_types', lineBuffer)
 END IF
 
+IF ( road > -1 ) THEN
+  WRITE(lineBuffer, *) '  road = ', road
+  CALL jules_print('jules_surface_types', lineBuffer)
+END IF
+
 IF ( urban_canyon > -1 ) THEN
   WRITE(lineBuffer, *) '  urban_canyon = ', urban_canyon
   CALL jules_print('jules_surface_types', lineBuffer)
@@ -531,7 +541,7 @@ INTEGER(KIND=jpim), PARAMETER :: zhook_out = 1
 
 ! set number of each type of variable in my_namelist type
 INTEGER, PARAMETER :: no_of_types = 1
-INTEGER, PARAMETER :: n_int = 31 + (2 * ntype_max) + (2 * elev_tile_max)
+INTEGER, PARAMETER :: n_int = 32 + (2 * ntype_max) + (2 * elev_tile_max)
 
 TYPE :: my_namelist
   SEQUENCE
@@ -564,6 +574,7 @@ TYPE :: my_namelist
   INTEGER :: lake
   INTEGER :: soil
   INTEGER :: ice
+  INTEGER :: road
   INTEGER :: urban_canyon
   INTEGER :: urban_roof
   INTEGER :: elev_ice(elev_tile_max)
@@ -615,6 +626,7 @@ IF (mype == 0) THEN
   my_nml % lake             = lake
   my_nml % soil             = soil
   my_nml % ice              = ice
+  my_nml % road             = road
   my_nml % urban_canyon     = urban_canyon
   my_nml % urban_roof       = urban_roof
   my_nml % elev_ice(:)      = elev_ice(:)
@@ -656,6 +668,7 @@ IF (mype /= 0) THEN
   lake             = my_nml % lake
   soil             = my_nml % soil
   ice              = my_nml % ice
+  road             = my_nml % road
   urban_canyon     = my_nml % urban_canyon
   urban_roof       = my_nml % urban_roof
   elev_ice(:)      = my_nml % elev_ice(:)

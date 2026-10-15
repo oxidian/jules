@@ -47,8 +47,13 @@ LOGICAL ::                                                                     &
       ! Only used if l_top=.T.
   l_limit_gsoil = .FALSE.,                                                     &
       ! Switch for limiting gsoil above theta_crit
-  l_inland = .FALSE.
+  l_inland = .FALSE.,                                                          &
       ! Switch for putting inland water from from rivers into soil moisture
+  l_road_drain = .FALSE.,                                                      &
+      ! Switch to turn on road camber drainage.
+      ! Only applied to the road surface type.
+  l_no_road_throughfall = .FALSE.
+      ! Switch to turn off throughfall for the road surface type.
 
 !-----------------------------------------------------------------------------
 ! PDM parameters
@@ -80,13 +85,25 @@ REAL(KIND=real_jlslsm) ::                                                      &
   zw_max = rmdi
       ! Maximum allowed water table depth (m)
 
+!-----------------------------------------------------------------------------
+! Road drainage parameters
+!-----------------------------------------------------------------------------
+REAL(KIND=real_jlslsm) ::                                                      &
+  drain_film_thresh = rmdi,                                                    &
+      ! Threshold for which water is not drained off the road
+      ! due to road camber (kg m-2)
+  drain_hlife = rmdi
+      ! Half life for water drainage due to road camber (s)
+
 !------------------------------------------------------------------------------
 ! Single namelist definition for UM and standalone
 !------------------------------------------------------------------------------
 NAMELIST  / jules_hydrology/                                                   &
   l_hydrology, l_top, l_pdm, l_spdmvar, l_baseflow_corr, l_var_rainfrac,       &
   l_wetland_unfrozen, l_limit_gsoil, l_inland,                                 &
-  dz_pdm, b_pdm, s_pdm, slope_pdm_max, ti_max, ti_wetl, zw_max, nfita
+  l_road_drain, l_no_road_throughfall,                                         &
+  dz_pdm, b_pdm, s_pdm, slope_pdm_max, ti_max, ti_wetl, zw_max, nfita,         &
+  drain_film_thresh, drain_hlife
 
 
 CHARACTER(LEN=*), PARAMETER, PRIVATE :: ModuleName='JULES_HYDROLOGY_MOD'
@@ -98,6 +115,8 @@ CONTAINS
 SUBROUTINE check_jules_hydrology()
 
 USE ereport_mod, ONLY: ereport
+USE jules_surface_types_mod, ONLY: road
+USE jules_surface_mod, ONLY: l_point_data
 
 !-----------------------------------------------------------------------------
 ! Description:
@@ -197,6 +216,56 @@ IF ( l_top ) THEN
 
 END IF  !  l_top
 
+!-----------------------------------------------------------------------------
+! Check that the road options can be applied.
+!-----------------------------------------------------------------------------
+IF ( l_road_drain .OR. l_no_road_throughfall ) THEN
+
+  ! The road options act on the road surface type only.
+  IF ( road <= 0 ) THEN
+    errorstatus = 101  !  a hard error
+    CALL ereport(RoutineName, errorstatus,                                     &
+                 "l_road_drain or l_no_road_throughfall requires a road " //   &
+                 "surface type (road in jules_surface_types)")
+  END IF
+
+  ! The road options are not implemented for point rainfall data.
+  IF ( l_point_data ) THEN
+    errorstatus = 101  !  a hard error
+    CALL ereport(RoutineName, errorstatus,                                     &
+                 "l_road_drain or l_no_road_throughfall cannot be used " //    &
+                 "with l_point_data")
+  END IF
+
+END IF
+
+!-----------------------------------------------------------------------------
+! Check that values required with road camber drainage have been provided.
+!-----------------------------------------------------------------------------
+IF ( l_road_drain ) THEN
+
+  IF ( ABS( drain_hlife - rmdi ) < EPSILON(1.0) ) THEN
+    errorstatus = 101  !  a hard error
+    CALL ereport(RoutineName, errorstatus,                                     &
+                 "No value for drain_hlife")
+  ELSE IF ( drain_hlife <= 0.0 ) THEN
+    errorstatus = 101  !  a hard error
+    CALL ereport(RoutineName, errorstatus,                                     &
+                 "drain_hlife must be > 0")
+  END IF
+
+  IF ( ABS( drain_film_thresh - rmdi ) < EPSILON(1.0) ) THEN
+    errorstatus = 101  !  a hard error
+    CALL ereport(RoutineName, errorstatus,                                     &
+                 "No value for drain_film_thresh")
+  ELSE IF ( drain_film_thresh < 0.0 ) THEN
+    errorstatus = 101  !  a hard error
+    CALL ereport(RoutineName, errorstatus,                                     &
+                 "drain_film_thresh must be >= 0")
+  END IF
+
+END IF  !  l_road_drain
+
 END SUBROUTINE check_jules_hydrology
 
 !#############################################################################
@@ -236,6 +305,12 @@ CALL jules_print('jules_hydrology', lineBuffer)
 WRITE(lineBuffer, *) '  l_inland = ', l_inland
 CALL jules_print('jules_hydrology', lineBuffer)
 
+WRITE(lineBuffer, *) '  l_road_drain = ', l_road_drain
+CALL jules_print('jules_hydrology', lineBuffer)
+
+WRITE(lineBuffer, *) '  l_no_road_throughfall = ', l_no_road_throughfall
+CALL jules_print('jules_hydrology', lineBuffer)
+
 WRITE(lineBuffer, *) '  dz_pdm = ', dz_pdm
 CALL jules_print('jules_hydrology', lineBuffer)
 
@@ -258,6 +333,12 @@ WRITE(lineBuffer, *) '  zw_max = ', zw_max
 CALL jules_print('jules_hydrology', lineBuffer)
 
 WRITE(lineBuffer, *) '  nfita = ', nfita
+CALL jules_print('jules_hydrology', lineBuffer)
+
+WRITE(lineBuffer, *) '  drain_film_thresh = ', drain_film_thresh
+CALL jules_print('jules_hydrology', lineBuffer)
+
+WRITE(lineBuffer, *) '  drain_hlife = ', drain_hlife
 CALL jules_print('jules_hydrology', lineBuffer)
 
 CALL jules_print('jules_hydrology',                                            &
@@ -301,8 +382,8 @@ INTEGER(KIND=jpim), PARAMETER :: zhook_out = 1
 ! set number of each type of variable in my_namelist type
 INTEGER, PARAMETER :: no_of_types = 3
 INTEGER, PARAMETER :: n_int = 1
-INTEGER, PARAMETER :: n_real = 7
-INTEGER, PARAMETER :: n_log = 9
+INTEGER, PARAMETER :: n_real = 9
+INTEGER, PARAMETER :: n_log = 11
 
 TYPE :: my_namelist
   SEQUENCE
@@ -314,6 +395,8 @@ TYPE :: my_namelist
   REAL(KIND=real_jlslsm) :: ti_max
   REAL(KIND=real_jlslsm) :: ti_wetl
   REAL(KIND=real_jlslsm) :: zw_max
+  REAL(KIND=real_jlslsm) :: drain_film_thresh
+  REAL(KIND=real_jlslsm) :: drain_hlife
   LOGICAL :: l_hydrology
   LOGICAL :: l_top
   LOGICAL :: l_pdm
@@ -323,6 +406,8 @@ TYPE :: my_namelist
   LOGICAL :: l_wetland_unfrozen
   LOGICAL :: l_limit_gsoil
   LOGICAL :: l_inland
+  LOGICAL :: l_road_drain
+  LOGICAL :: l_no_road_throughfall
 END TYPE my_namelist
 
 TYPE (my_namelist) :: my_nml
@@ -349,6 +434,8 @@ IF (mype == 0) THEN
   my_nml % ti_max          = ti_max
   my_nml % ti_wetl         = ti_wetl
   my_nml % zw_max          = zw_max
+  my_nml % drain_film_thresh = drain_film_thresh
+  my_nml % drain_hlife     = drain_hlife
   ! end of reals
   my_nml % l_hydrology     = l_hydrology
   my_nml % l_top           = l_top
@@ -359,6 +446,8 @@ IF (mype == 0) THEN
   my_nml % l_wetland_unfrozen  = l_wetland_unfrozen
   my_nml % l_limit_gsoil   = l_limit_gsoil
   my_nml % l_inland        = l_inland
+  my_nml % l_road_drain    = l_road_drain
+  my_nml % l_no_road_throughfall = l_no_road_throughfall
 
 END IF
 
@@ -375,6 +464,8 @@ IF (mype /= 0) THEN
   ti_max        = my_nml % ti_max
   ti_wetl       = my_nml % ti_wetl
   zw_max        = my_nml % zw_max
+  drain_film_thresh = my_nml % drain_film_thresh
+  drain_hlife   = my_nml % drain_hlife
   ! end of reals
   l_hydrology     = my_nml % l_hydrology
   l_top           = my_nml % l_top
@@ -385,6 +476,8 @@ IF (mype /= 0) THEN
   l_wetland_unfrozen  = my_nml % l_wetland_unfrozen
   l_limit_gsoil   = my_nml % l_limit_gsoil
   l_inland        = my_nml % l_inland
+  l_road_drain    = my_nml % l_road_drain
+  l_no_road_throughfall = my_nml % l_no_road_throughfall
 
 END IF
 

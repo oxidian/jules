@@ -54,6 +54,7 @@ IMPLICIT NONE
 !       6 - Urban
 !     601 - Urban roof
 !     602 - Urban canyon
+!     603 - Road
 !       7 - Water
 !       8 - Soil
 !       9 - Ice
@@ -119,6 +120,8 @@ INTEGER, PARAMETER ::                                                          &
                 ! ID number of surface type 'Soil'
    ,id_ice               =  9                                                  &
                 ! ID number of surface type 'Ice'
+   ,id_road              =  603                                                &
+                ! ID number of surface type 'Road'
 
    ,id_elev_ice(25) = [901, 902, 903, 904, 905, 906, 907, 908, 909, 910,       &
                        911, 912, 913, 914, 915, 916, 917, 918, 919, 920,       &
@@ -197,6 +200,7 @@ USE jules_surface_types_mod, ONLY:                                             &
     lake,                                                                      &
     soil,                                                                      &
     ice,                                                                       &
+    road,                                                                      &
     usr_type,                                                                  &
     elev_ice,                                                                  &
     elev_rock
@@ -271,6 +275,8 @@ IF (soil             > 0)                                                      &
                 surface_type_ids(soil             ) = id_soil
 IF (ice              > 0)                                                      &
                 surface_type_ids(ice              ) = id_ice
+IF (road             > 0)                                                      &
+                surface_type_ids(road             ) = id_road
 IF (urban_canyon     > 0)                                                      &
                 surface_type_ids(urban_canyon     ) = id_urban_canyon
 IF (urban_roof       > 0)                                                      &
