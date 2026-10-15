@@ -28,7 +28,8 @@ USE io_constants, ONLY: namelist_unit
 USE string_utils_mod, ONLY: to_string
 
 USE jules_hydrology_mod, ONLY: jules_hydrology, check_jules_hydrology,         &
-                                l_top, l_pdm
+                                l_top, l_pdm, l_road_drain,                    &
+                                l_no_road_throughfall
 
 USE logging_mod, ONLY: log_info, log_fatal
 
@@ -82,6 +83,14 @@ ELSE IF ( l_top ) THEN
   CALL log_info("init_hydrology", "TOPMODEL is on")
 ELSE
   CALL log_info("init_hydrology", "No large-scale hydrology selected")
+END IF
+
+IF ( l_road_drain ) THEN
+  CALL log_info("init_hydrology", "Road camber drainage is switched on")
+END IF
+
+IF ( l_no_road_throughfall ) THEN
+  CALL log_info("init_hydrology", "Throughfall for road tile is switched off")
 END IF
 
 RETURN
