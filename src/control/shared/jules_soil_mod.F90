@@ -70,6 +70,7 @@ LOGICAL ::                                                                     &
 INTEGER ::                                                                     &
   soilhc_method = 1
       ! Switch for the calculation method of soil thermal conductivity
+      !   SOILHC_METHOD=0: Use dry value only (also for heat capacity)
       !   SOILHC_METHOD=1: Method of Cox et al (1999)
       !   SOILHC_METHOD=2: Simplified Johansen (1975)
       !   SOILHC_METHOD=3: Chadburn et al. (2015) best for organic soils
@@ -223,9 +224,9 @@ IF ( sm_levels > sm_levels_max ) THEN
 END IF
 
 ! Check a suitable soilhc_method was given
-IF ( soilhc_method < 1 .OR. soilhc_method > 3 ) THEN
+IF ( soilhc_method < 0 .OR. soilhc_method > 3 ) THEN
   CALL ereport(RoutineName, errorstatus,                                       &
-    "soilhc_method must be 1, 2 or 3")
+    "soilhc_method must be 0, 1, 2 or 3")
 END IF
 
 ! Associate the dzsoil pointer with the appropriate section of dzsoil_io

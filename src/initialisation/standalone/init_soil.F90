@@ -100,7 +100,10 @@ ELSE
                 "l_soil_sat_down = F - excess water is pushed up")
 END IF
 
-IF ( soilHc_method == 1 ) THEN
+IF ( soilHc_method == 0 ) THEN
+  CALL log_info("init_soil",                                                   &
+                "soilHc_method = 0 - dry value used")
+ELSE IF ( soilHc_method == 1 ) THEN
   CALL log_info("init_soil",                                                   &
                 "soilHc_method = 1 - following Cox et al (1999)")
 ELSE IF ( soilHc_method == 2 ) THEN
