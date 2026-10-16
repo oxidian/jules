@@ -34,7 +34,7 @@ USE conversions_mod,        ONLY: zerodegc
 USE water_constants_mod,    ONLY: dpsidt, hcapi, hcapw, lf, rho_water
 USE jules_snow_mod,         ONLY: snow_hcon
 USE jules_soil_mod,         ONLY: facur, gamma_t, mmax, tacur, l_bedrock,      &
-                                  ns_deep
+                                  ns_deep, soilhc_method
 USE jules_soil_biogeochem_mod, ONLY: heat_of_respiration, l_bgc_heat
 USE ancil_info,             ONLY: dim_cslayer
 USE jules_surface_mod,      ONLY: l_flake_model
@@ -385,7 +385,7 @@ END IF
 !$OMP        w_flux, dhadv_dtsl0, dhadv_dtsl1, dhadv_dtsl2, v_sat,             &
 !$OMP        tiny_0, smcl, small_value, work1, smclsat, bexp, tmax, sathh,     &
 !$OMP        dhsl0, timestep, dhsl, resp_s_soilt, l_bgc_heat, dim_cs1,         &
-!$OMP        dim_cslayer, heat_of_respiration)
+!$OMP        dim_cslayer, heat_of_respiration, soilhc_method)
 
 ! Blocking is needed as the nshyd dimension has a spatial
 ! dependence (n +/-1). Blocking enables parallelising over the
@@ -480,6 +480,10 @@ DO j = 1, soil_pts
       tmax(i,n) = -zerodegc
     END IF
 
+    IF (soilhc_method == 0) THEN
+      tmax(i,n) = -999.99
+    END IF
+
     dhsl0(i,n) = timestep * (h_flux(i,n-1) - h_flux(i,n) + hadv(i,n))
     dhsl(i,n)  = dhsl0(i,n)
 
@@ -538,7 +542,8 @@ DO m = 1,mmax
 !$OMP SHARED (iter_pts, nshyd, iter_index, tsl0, tsl, smclf0, smclf, smclu0,   &
 !$OMP         smclu, dtslmax, dtslmin, tmax, dthu, dhsl, smclsat, bexp, sathh, &
 !$OMP         dz, hcapt, hcap, timestep, a, b, c, d, dhflux_dtsl1, smcl,       &
-!$OMP         dhadv_dtsl0, dhflux_dtsl2, dhadv_dtsl1, npnts,dhadv_dtsl2, iter)
+!$OMP         dhadv_dtsl0, dhflux_dtsl2, dhadv_dtsl1, npnts,dhadv_dtsl2, iter, &
+!$OMP         soilhc_method)
 
 !$OMP DO SCHEDULE(STATIC)
   DO j = 1, iter_pts
@@ -569,9 +574,13 @@ DO m = 1,mmax
         dtslmax(i,n) = tmax(i,n) - tsl(i,n)
       END IF
 
-      hcapt(i,n) = hcap(i,n) + (hcapw - hcapi) * smclu(i,n) / dz(n)            &
-                  + hcapi * smcl(i,n) / dz(n)                                  &
-                  + rho_water * dthu(i,n) * ((hcapw - hcapi) * tsl(i,n) + lf)
+      IF (soilhc_method == 0) THEN
+        hcapt(i,n) = hcap(i,n)
+      ELSE
+        hcapt(i,n) = hcap(i,n) + (hcapw - hcapi) * smclu(i,n) / dz(n)          &
+                    + hcapi * smcl(i,n) / dz(n)                                &
+                    + rho_water * dthu(i,n) * ((hcapw - hcapi) * tsl(i,n) + lf)
+      END IF
 
 
       !-----------------------------------------------------------------------
