@@ -30,7 +30,7 @@ SUBROUTINE hydrol (                                                            &
      satcon_soilt, sathh_soilt,                                                &
      smvcst_soilt, smvcwt_soilt,                                               &
      catch_surft, frac_irr_soilt,  infil_surft,                                &
-     non_lake_frac, slope_gb, tile_frac,                                       &
+     non_lake_frac, slope_gb, tile_frac, tstar_surft,                          &
      con_rainfrac_land,  con_rain_land, ls_rainfrac_land, ls_rain_land,        &
      con_rain_land_wtrac, ls_rain_land_wtrac,                                  &
      surf_ht_flux_ld,                                                          &
@@ -201,8 +201,10 @@ REAL(KIND=real_jlslsm), INTENT(IN) ::                                          &
     ! Sum of fractions of surface tiles linked to soil (i.e. not using FLake)
   slope_gb(land_pts),                                                          &
     ! Terrain slope.
-  tile_frac(land_pts,nsurft)
+  tile_frac(land_pts,nsurft),                                                  &
     ! Tile fractions.
+  tstar_surft(land_pts,nsurft)
+    ! Tile surface temperature (K).
 
 ! Precipitation variables and heat fluxes.
 REAL(KIND=real_jlslsm), INTENT(IN) ::                                          &
@@ -608,7 +610,7 @@ CALL surf_hyd (land_pts, nsurft, sm_levels, soil_pts, n_wtrac_jls, timestep,   &
                catch_surft, ecan_surft, tile_frac, non_lake_frac, infil_surft, &
                con_rain_land, ls_rain_land, con_rainfrac_land,                 &
                ls_rainfrac_land, melt_surft, slope_gb, snow_melt,              &
-               fsat_soilt, smvcst_soilt, sthf_soilt, sthu_soilt,               &
+               fsat_soilt, smvcst_soilt, sthf_soilt, sthu_soilt, tstar_surft,  &
                ecan_surft_wtrac, melt_surft_wtrac,                             &
                snow_melt_wtrac, con_rain_land_wtrac, ls_rain_land_wtrac,       &
                canopy_surft, canopy_surft_wtrac, canopy_gb, dsmc_dt_soilt,     &

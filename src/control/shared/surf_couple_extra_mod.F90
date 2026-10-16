@@ -764,7 +764,7 @@ CASE ( jules )
       psparms%satcon_soilt, psparms%sathh_soilt,                               &
       psparms%smvcst_soilt, psparms%smvcwt_soilt,                              &
       psparms%catch_surft, crop_vars%frac_irr_soilt, psparms%infil_surft,      &
-      lake_vars%non_lake_frac, toppdm%slope_gb, tile_frac,                     &
+      lake_vars%non_lake_frac, toppdm%slope_gb, tile_frac, progs%tstar_surft,  &
       con_rainfrac_gb, con_rain_gb, ls_rainfrac_gb, ls_rain_gb,                &
       con_rain_wtrac, ls_rain_wtrac,                                           &
       surf_ht_flux_ld,                                                         &
