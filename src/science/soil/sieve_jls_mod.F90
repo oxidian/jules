@@ -30,7 +30,8 @@ USE yomhook, ONLY: lhook, dr_hook
 USE parkind1, ONLY: jprb, jpim
 
 USE jules_surface_mod, ONLY: l_flake_model
-USE jules_surface_types_mod, ONLY: lake
+USE jules_surface_types_mod, ONLY: lake, road
+USE jules_hydrology_mod, ONLY: l_no_road_throughfall
 
 USE jules_water_tracers_mod, ONLY: l_wtrac_jls
 
@@ -143,11 +144,14 @@ smallp    = EPSILON( r )
 !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(j, i, aexp, can_ratio)                 &
 !$OMP SHARED(surft_pts, surft_index, can_cpy, r, smallp, area, timestep,       &
 !$OMP        smallestp, can_wcnt, tfall, tot_tfall, frac, tot_tfall_surft,     &
-!$OMP        l_flake_model, lake, curr_surft )                                 &
+!$OMP        l_flake_model, lake, curr_surft, l_no_road_throughfall, road )    &
 !$OMP SCHEDULE(STATIC)
 DO j = 1,surft_pts
   i = surft_index(j)
-  IF ( can_cpy(i)  >  0.0 .AND. r(i) > smallp ) THEN
+  IF ( l_no_road_throughfall .AND. (curr_surft == road) ) THEN
+    ! No throughfall on the road surface type: all water goes to the store.
+    tfall(i) = 0.0
+  ELSE IF ( can_cpy(i)  >  0.0 .AND. r(i) > smallp ) THEN
     aexp = area(i) * can_cpy(i) / (r(i) * timestep)
     ! Only calculate if AEXP is small enough to avoid underflow
     IF (aexp < -LOG(smallestp)) THEN
