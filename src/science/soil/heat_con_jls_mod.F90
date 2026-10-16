@@ -9,6 +9,9 @@
 !    Calculates the soil thermal conductivity including the
 !    effects of water and ice.
 
+! Method == 0
+!      Dry soil conductivity, no effect of water or ice (road surfaces).
+
 ! Method == 1
 !      Described in Cox et al (1999), Appendix B.
 !      http://www.springerlink.com/content/9b459pyfhyjwk1ln/
@@ -128,6 +131,8 @@ DO i = 1,npnts
   END IF
 END DO
 !$OMP END DO
+
+! soilhc_method == 0: the dry conductivity set above is used unchanged.
 
 IF (soilhc_method == 1) THEN
 !$OMP DO SCHEDULE(STATIC)
