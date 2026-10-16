@@ -37,7 +37,8 @@ SUBROUTINE surf_hyd (                                                          &
             catch_surft, ecan_surft, tile_frac, non_lake_frac, infil_surft,    &
             con_rain_land, ls_rain_land, con_rainfrac_land, ls_rainfrac_land,  &
             melt_surft, slope_gb, snow_melt, fsat_soilt, smvcst_soilt,         &
-            sthf_soilt, sthu_soilt, ecan_surft_wtrac, melt_surft_wtrac,        &
+            sthf_soilt, sthu_soilt, tstar_surft,                               &
+            ecan_surft_wtrac, melt_surft_wtrac,                                &
             snow_melt_wtrac, con_rain_land_wtrac, ls_rain_land_wtrac,          &
             canopy_surft, canopy_surft_wtrac, canopy_gb, dsmc_dt_soilt,        &
             surf_roff_gb, tot_tfall_gb, tot_tfall_surft,                       &
@@ -48,12 +49,15 @@ SUBROUTINE surf_hyd (                                                          &
 USE frunoff_mod,  ONLY: frunoff
 USE sieve_mod,   ONLY: sieve
 USE pdm_mod,     ONLY: pdm
+USE road_drain_mod, ONLY: road_drain
 
 ! Use in relevant variables
 USE jules_surface_mod, ONLY: l_point_data, l_flake_model
 ! Switch for using point rainfall data, switch for using FLake model.
 
-USE jules_surface_types_mod, ONLY: lake
+USE jules_surface_types_mod, ONLY: lake, road
+
+USE jules_hydrology_mod, ONLY: l_road_drain, drain_film_thresh, drain_hlife
 
 USE jules_water_tracers_mod, ONLY: l_wtrac_jls
 
@@ -135,6 +139,8 @@ REAL(KIND=real_jlslsm), INTENT(IN) ::                                          &
   sthu_soilt(land_pts,nsoilt,sm_levels),                                       &
     ! Unfrozen soil moisture content of each layer as a fraction of
     ! saturation.
+  tstar_surft(land_pts,nsurft),                                                &
+    ! Tile surface temperature (K).
   ecan_surft_wtrac(land_pts,nsurft,n_wtrac_jls),                               &
     ! Water tracer canopy evaporation (kg/m2/s).
   melt_surft_wtrac(land_pts,nsurft,n_wtrac_jls),                               &
@@ -506,6 +512,15 @@ ELSE
                   tile_frac(:,n),                                              &
                   surf_roff_gb, surf_roff_surft(:,n),surf_roff_gb_wtrac,       &
                   surf_roff_surft_wtrac)
+
+    IF ( l_road_drain .AND. (n == road) ) THEN
+      ! Drainage due to road camber, on the road surface type only.
+      ! (Note, water tracers not coded for this option.)
+      CALL road_drain (land_pts, surft_pts(n), surft_index(:,n), timestep,     &
+                       canopy_surft(:,n), drain_film_thresh, drain_hlife,      &
+                       tstar_surft(:,n), tile_frac(:,n), catch_surft(:,n),     &
+                       tot_tfall_gb, tot_tfall_surft(:,n), snow_melt)
+    END IF
 
   END DO
 END IF   !   l_point_data
