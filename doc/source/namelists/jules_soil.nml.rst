@@ -83,10 +83,13 @@ This file sets the soil options and parameters. It contains one namelist called 
 .. nml:member:: soilhc_method
 
    :type: integer
-   :permitted: 1, 2 or 3
+   :permitted: 0, 1, 2 or 3
    :default: 1
 
    Switch for soil thermal conductivity model.
+
+   0. | Use the dry soil thermal conductivity and the dry soil heat capacity, with no soil freezing, in every soil column.
+      | Intended for road surfaces. Not available in the UM.
 
    1. | Use approach of Cox et al (1999), as in JULES2.0.
       | This is likely to predict values of soil thermal conductivity that are too low (Dharssi et al, 2009).
