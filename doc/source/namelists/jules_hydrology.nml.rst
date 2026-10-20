@@ -109,6 +109,34 @@ This file sets the hydrology options. It contains one namelist called :nml:lst:`
        No inland basin flow.
 
 
+.. nml:member:: l_road_drain
+
+   :type: logical
+   :default: F
+
+   Switch for road camber drainage on the road surface type (:nml:mem:`JULES_SURFACE_TYPES::road`, which must be set). Not available with :nml:mem:`JULES_SURFACE::l_point_data` = TRUE, nor in the UM.
+
+   TRUE
+       The canopy water store of the road surface type is a water film on the road. Gridbox snowmelt is added to it. While the road surface temperature is above 0 °C and the store is above :nml:mem:`JULES_HYDROLOGY::drain_film_thresh`, it drains with half-life :nml:mem:`JULES_HYDROLOGY::drain_hlife`. Water above the canopy capacity spills. Drained and spilled water is added to the throughfall.
+
+   FALSE
+       No road camber drainage.
+
+
+.. nml:member:: l_no_road_throughfall
+
+   :type: logical
+   :default: F
+
+   Switch for throughfall on the road surface type (:nml:mem:`JULES_SURFACE_TYPES::road`, which must be set). Not available with :nml:mem:`JULES_SURFACE::l_point_data` = TRUE, nor in the UM.
+
+   TRUE
+       No throughfall on the road surface type: condensation, large-scale rain and convective rain all go to its canopy water store. The store is not capped at the canopy capacity unless :nml:mem:`JULES_HYDROLOGY::l_road_drain` = TRUE, which also drains it.
+
+   FALSE
+       Throughfall on the road surface type is calculated as for other surface types.
+
+
 .. nml:group:: Only used if :nml:mem:`JULES_HYDROLOGY::l_top` = TRUE
 
    .. nml:member:: zw_max
@@ -225,3 +253,22 @@ This file sets the hydrology options. It contains one namelist called :nml:lst:`
       e.g. A value of 0 indicates that surface saturation can occur for any
       value of water storage. A value of 0.5 would indicate that
       no surface runoff is produced until the soil is 50% saturated.
+
+
+.. nml:group:: Only used if :nml:mem:`JULES_HYDROLOGY::l_road_drain` = TRUE
+
+   .. nml:member:: drain_film_thresh
+
+      :type: real
+      :permitted: >= 0
+      :default: None
+
+      Road water store above which road camber drainage occurs (kg m\ :sup:`-2`).
+
+   .. nml:member:: drain_hlife
+
+      :type: real
+      :permitted: > 0
+      :default: None
+
+      Half-life of road camber drainage (s).
