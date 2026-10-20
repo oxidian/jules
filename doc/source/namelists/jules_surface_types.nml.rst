@@ -184,6 +184,16 @@ and removed in the GUI window as described in the table below. To:
    surface type if it is not required (see explanation at the
    :ref:`top<top_jules_surface_types>` of this page).
 
+.. nml:member:: road
+
+   :type: integer
+   :permitted: npft+1:ntype
+   :default: -32768
+
+   Index of the road surface type (#603).
+
+   Used by :nml:mem:`JULES_HYDROLOGY::l_road_drain` and :nml:mem:`JULES_HYDROLOGY::l_no_road_throughfall`, which require it. Give it an index of its own: if it shares an index with another surface type, the road options act on that surface type too.
+
 .. nml:member:: usr_type
 
    :type: integer

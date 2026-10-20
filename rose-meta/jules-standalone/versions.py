@@ -141,3 +141,29 @@ class vn82_t140(MacroUpgrade):
                 )
 
         return config, self.reports
+
+
+class vn82_tXXX(MacroUpgrade):
+    """Upgrade macro from JULES by Erwan Fassot"""
+
+    BEFORE_TAG = "vn8.2_t140"
+    AFTER_TAG = "vn8.2_tXXX"
+
+    def upgrade(self, config, meta_config=None):
+        """Upgrade a JULES runtime app configuration."""
+
+        # Add the road camber drainage and road throughfall options, switched
+        # off. The road surface type is optional (compulsory=false), so it is
+        # not added. No lsm_id guard: rivers-only never reads jules_hydrology,
+        # and a guard makes Rose write ignored entries into rivers-only opts.
+        jules_hydrology = {}
+        jules_hydrology["l_road_drain"] = ".false."
+        jules_hydrology["l_no_road_throughfall"] = ".false."
+        jules_hydrology["drain_film_thresh"] = "0.04"
+        jules_hydrology["drain_hlife"] = "1800.0"
+        for item, value in jules_hydrology.items():
+            self.add_setting(
+                config, ["namelist:jules_hydrology", item], value
+            )
+
+        return config, self.reports
