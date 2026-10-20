@@ -25,7 +25,8 @@ USE jules_urban_mod, ONLY: l_urban_empirical
 USE jules_rivers_mod, ONLY: l_riv_overbank, l_rivers, i_river_vn,              &
     rivers_um_trip, rivers_rfm
 USE jules_soil_biogeochem_mod, ONLY: l_ch4_microbe, l_label_frac_cs
-USE jules_soil_mod, ONLY: l_tile_soil, l_bedrock
+USE jules_hydrology_mod, ONLY: l_road_drain, l_no_road_throughfall
+USE jules_soil_mod, ONLY: l_tile_soil, l_bedrock, soilhc_method
 USE jules_surface_types_mod, ONLY: ncpft
 USE jules_water_resources_mod, ONLY: l_water_resources
 USE jules_deposition_mod, ONLY: l_deposition_from_ukca, l_deposition_gc_corr,  &
@@ -70,6 +71,23 @@ IF ( l_rivers ) THEN
   END IF
 END IF
 
+! jules_hydrology
+IF ( l_road_drain ) THEN
+  error_sum = error_sum + 1
+  WRITE(jules_message,'(I0,A,L1)') error_sum,                                  &
+     ": Road camber drainage is only available to standalone JULES. " //       &
+     "l_road_drain = ", l_road_drain
+  CALL jules_print(RoutineName, jules_message, level = PrNorm)
+END IF
+
+IF ( l_no_road_throughfall ) THEN
+  error_sum = error_sum + 1
+  WRITE(jules_message,'(I0,A,L1)') error_sum,                                  &
+     ": Switching off road throughfall is only available to standalone " //    &
+     "JULES. l_no_road_throughfall = ", l_no_road_throughfall
+  CALL jules_print(RoutineName, jules_message, level = PrNorm)
+END IF
+
 ! jules_soil_biogeochem_mod
 IF ( l_ch4_microbe ) THEN
   error_sum = error_sum + 1
@@ -103,6 +121,15 @@ IF ( l_bedrock ) THEN
   WRITE(jules_message,'(I0,A,L1)') error_sum,                                  &
      ": Bedrock is only available to standalone JULES. " //                    &
      "l_bedrock = ", l_bedrock
+  CALL jules_print(RoutineName, jules_message, level = PrNorm)
+END IF
+
+! jules_soil_mod
+IF ( soilhc_method == 0 ) THEN
+  error_sum = error_sum + 1
+  WRITE(jules_message,'(I0,A,I0)') error_sum,                                  &
+     ": Dry soil heat capacity and conductivity with no freezing is only " //  &
+     "available to standalone JULES. soilhc_method = ", soilhc_method
   CALL jules_print(RoutineName, jules_message, level = PrNorm)
 END IF
 
