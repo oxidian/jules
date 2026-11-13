@@ -81,6 +81,12 @@
             ROSE_TASK_APP = loobos_gl8
             ROSE_APP_OPT_CONF_KEYS=irrigon_5050irrigtiles
 
+    [[meto_ex1a_gfortran_loobos_gl8_road]]
+        inherit = METO_EX1A_GFORTRAN_LOOBOS
+        [[[environment]]]
+            ROSE_TASK_APP = loobos_gl8
+            ROSE_APP_OPT_CONF_KEYS=road
+
     [[meto_ex1a_gfortran_loobos_vegdrag]]
         inherit = METO_EX1A_GFORTRAN_LOOBOS
         [[[environment]]]
@@ -539,6 +545,11 @@
         [[[environment]]]
             OUTPUT_DIR = ../meto_ex1a_gfortran_loobos_gl8_irrigon_5050irrigtiles/output
 
+    [[nccmp_meto_ex1a_gfortran_loobos_gl8_road]]
+        inherit = METO_EX1A_NETCDF_COMPARISON
+        [[[environment]]]
+            OUTPUT_DIR = ../meto_ex1a_gfortran_loobos_gl8_road/output
+
     [[nccmp_meto_ex1a_gfortran_loobos_vegdrag]]
         inherit = METO_EX1A_NETCDF_COMPARISON
         [[[environment]]]
@@ -857,6 +868,11 @@
         inherit = METO_EX1A_HOUSEKEEPING
         [[[environment]]]
             DIR1 = ../meto_ex1a_gfortran_loobos_gl8_irrigon_5050irrigtiles
+
+    [[housekeep_meto_ex1a_gfortran_loobos_gl8_road]]
+        inherit = METO_EX1A_HOUSEKEEPING
+        [[[environment]]]
+            DIR1 = ../meto_ex1a_gfortran_loobos_gl8_road
 
     [[housekeep_meto_ex1a_gfortran_loobos_vegdrag]]
         inherit = METO_EX1A_HOUSEKEEPING
