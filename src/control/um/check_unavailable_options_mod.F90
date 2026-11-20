@@ -23,9 +23,8 @@ USE jules_vegetation_mod, ONLY: l_gleaf_fix, l_o3_damage, l_use_pft_psi,       &
 USE jules_irrig_mod, ONLY: l_irrig_limit
 USE jules_urban_mod, ONLY: l_urban_empirical
 USE jules_rivers_mod, ONLY: l_riv_overbank, l_rivers, i_river_vn,              &
-    rivers_um_trip, rivers_rfm
-USE jules_soil_biogeochem_mod, ONLY: l_ch4_microbe, l_label_frac_cs,           &
-                                     l_bgc_heat
+    rivers_um_trip, rivers_rfm, l_reservoirs, l_minor_reservoirs
+USE jules_soil_biogeochem_mod, ONLY: l_ch4_microbe, l_label_frac_cs
 USE jules_hydrology_mod, ONLY: l_road_drain, l_no_road_throughfall
 USE jules_soil_mod, ONLY: l_tile_soil, l_bedrock, soilhc_method
 USE jules_surface_types_mod, ONLY: ncpft
@@ -86,15 +85,6 @@ IF ( l_no_road_throughfall ) THEN
   WRITE(jules_message,'(I0,A,L1)') error_sum,                                  &
      ": Switching off road throughfall is only available to standalone " //    &
      "JULES. l_no_road_throughfall = ", l_no_road_throughfall
-  CALL jules_print(RoutineName, jules_message, level = PrNorm)
-END IF
-
-! jules_soil_biogeochem_mod
-IF ( l_bgc_heat ) THEN
-  error_sum = error_sum + 1
-  WRITE(jules_message,'(I0,A,L1)') error_sum,                                  &
-     ": Biogenic heating scheme is only available to standalone JULES. " //    &
-     "l_bgc_heat = ", l_bgc_heat
   CALL jules_print(RoutineName, jules_message, level = PrNorm)
 END IF
 
@@ -224,6 +214,22 @@ IF ( l_croprotate ) THEN
   WRITE(jules_message,'(I0,A,L1)') error_sum,                                  &
      ": Double cropping is only available to standalone. " //                  &
      "l_croprotate = ", l_croprotate
+  CALL jules_print(RoutineName, jules_message, level = PrNorm)
+END IF
+
+IF ( l_reservoirs ) THEN
+  error_sum = error_sum + 1
+  WRITE(jules_message,'(I0,A,L1)') error_sum,                                  &
+     ": Reservoirs are only available to standalone. " //                      &
+     "l_reservoirs = ", l_reservoirs
+  CALL jules_print(RoutineName, jules_message, level = PrNorm)
+END IF
+
+IF ( l_minor_reservoirs ) THEN
+  error_sum = error_sum + 1
+  WRITE(jules_message,'(I0,A,L1)') error_sum,                                  &
+     ": Minor reservoirs are only available to standalone. " //                &
+     "l_minor_reservoirs = ", l_minor_reservoirs
   CALL jules_print(RoutineName, jules_message, level = PrNorm)
 END IF
 
